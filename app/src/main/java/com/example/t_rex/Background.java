@@ -19,7 +19,7 @@ public class Background {
 
     public void update() {
         x += dx;
-        if (x < -image.getWidth()) {
+        if (x < -GamePanel.WIDTH) {
             x = 0;
         }
     }

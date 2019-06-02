@@ -22,7 +22,7 @@ public class Platform extends GameObject {
 
     public void update() {
         xVel += dx;
-        if (xVel < -width) {
+        if (xVel < -GamePanel.WIDTH) {
             xVel = 0;
         }
     }

@@ -64,21 +64,17 @@ public class Player extends GameObject {
 
     public void collide(ArrayList<GameObject> object) {
         for (GameObject obj : object) {
-            if (obj != this) {
+            if (obj != this && !(obj instanceof Monet) && !(obj instanceof Missile)) {
                 if (collision(this, obj)) {
-                    if (obj instanceof Missile) {
-                        score += 100;
-                    } else {
-                        if (obj instanceof Kaktus) {
-                            playing = false;
-                            showText = true;
-                        } else {
-                            dy = 0;
+                    if (obj instanceof Kaktus) {
+                        playing = false;
+                        showText = true;
+                    }
+                    if (obj instanceof Platform){
+                        dy = 0;
 //                        this.getRectangle().bottom = obj.getRectangle().top;
-                            y = obj.y - height;
-                            onGround = true;
-
-                        }
+                        y = obj.y - height;
+                        onGround = true;
                     }
                 }
             }
