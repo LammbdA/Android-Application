@@ -12,7 +12,7 @@ public class Kaktus extends GameObject {
         height = res.getHeight();
         this.x = x;
         y = (int) (GamePanel.HEIGHT - height * 1.4);
-        speed = 18 + score / 100;
+        speed = GamePanel.WIDTH / 70 + score / 100;
         spritesheet = res;
     }
 

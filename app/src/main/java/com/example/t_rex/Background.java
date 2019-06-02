@@ -13,7 +13,7 @@ public class Background {
         this.image = image;
         y = 0;
         x = 0;
-        speed = 18 + score / 100;
+        speed = GamePanel.WIDTH / 70 + score / 100;
         dx = -speed;
     }
 

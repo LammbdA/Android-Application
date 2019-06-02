@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -24,6 +23,9 @@ import java.util.Random;
 public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     public static int WIDTH;
     public static int HEIGHT;
+    private final int FIRST_POSITION;
+    private final int SECOND_POSITION;
+//    private final int THIRD_POSITION;
     private long missileStartTime;
     private long kaktusStartTime;
 
@@ -62,6 +64,11 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         Display display = wm.getDefaultDisplay();
         WIDTH = display.getWidth();
         HEIGHT = display.getHeight();
+
+        FIRST_POSITION = HEIGHT - 200;
+        SECOND_POSITION = HEIGHT - 400;
+//        THIRD_POSITION = HEIGHT - 600;
+
         soundJump = MediaPlayer.create(context, R.raw.jump);
         soundStuck = MediaPlayer.create(context, R.raw.stuck);
         soundMap = MediaPlayer.create(context, R.raw.game);
@@ -79,7 +86,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         dark = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.backgroundark), player.getScore());
         platform = new Platform(BitmapFactory.decodeResource(getResources(), R.drawable.platform), player.getScore());
         buttonStart = new ButtonStart(BitmapFactory.decodeResource(getResources(), R.drawable.play));
-        missileStartTime = System.nanoTime();
+        missileStartTime = System.currentTimeMillis() / 1000;
         kaktusStartTime = System.currentTimeMillis() / 1000;
         gameObjects = new ArrayList<>();
         gameObjects.add(player);
@@ -171,7 +178,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
             else
                 dark.update();
 
-//            long missileElapsed = (System.nanoTime() - missileStartTime) / 1000000;
+            long missileElapsed = System.currentTimeMillis() / 1000;
             long kaktusElapsed = System.currentTimeMillis() / 1000;
             int randomSecond = rand.nextInt(8) + 3;
 
@@ -190,12 +197,42 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                         break;
                     }
                 }
-                if(object instanceof Monet){
+                if (object instanceof Monet) {
                     ((Monet) object).update();
-                    if (object.getX() < -100 || player.collision(player, object)){
+                    if (object.getX() < -100 || player.collision(player, object)) {
                         money++;
                         contentValues.put(Database.KEY_MONEY, money);
                         db.update(Database.TABLE_GAME, contentValues, Database.KEY_ID + "= ?", new String[]{"1"});
+                        gameObjects.remove(object);
+                        break;
+                    }
+                }
+            }
+            randomSecond = rand.nextInt(30) + 15;
+            int randomPosition = rand.nextInt(2) + 1;
+            if (missileElapsed - missileStartTime >= randomSecond) {
+                switch (randomPosition) {
+                    case 1:
+                        gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
+                                WIDTH + 10, FIRST_POSITION, player.getScore()));
+                        missileStartTime = System.currentTimeMillis() / 1000;
+                        break;
+                    case 2:
+                        gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
+                                WIDTH + 10, SECOND_POSITION, player.getScore()));
+                        missileStartTime = System.currentTimeMillis() / 1000;
+                        break;
+//                    case 3:
+//                        gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
+//                                WIDTH + 10, THIRD_POSITION, player.getScore()));
+//                        missileStartTime = System.currentTimeMillis() / 1000;
+//                        break;
+                }
+            }
+            for (GameObject object : gameObjects) {
+                if (object instanceof Missile) {
+                    ((Missile) object).update();
+                    if (object.getX() < -100) {
                         gameObjects.remove(object);
                         break;
                     }

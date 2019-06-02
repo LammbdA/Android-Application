@@ -10,7 +10,7 @@ public class Player extends GameObject {
 
     private Bitmap image;
     private final double JUMP_POWER;
-    private final double GRAVITY = 1;
+    private final double GRAVITY;
     private int score;
     private boolean jump;
     private boolean playing;
@@ -22,21 +22,22 @@ public class Player extends GameObject {
     public Player(Bitmap res) {
         height = res.getHeight();
         width = res.getWidth() / 6;
-        JUMP_POWER = height / 10;
+        JUMP_POWER = (double) GamePanel.HEIGHT / 30;
+        GRAVITY = (double) GamePanel.HEIGHT / 400;
         x = 100;
         y = (int) (GamePanel.HEIGHT - height * 1.3);
         dy = 0;
         score = 0;
         showText = false;
 
-        Bitmap[] image = new Bitmap[6];
+        Bitmap[] image = new Bitmap[4];
         this.image = res;
         for (int i = 0; i < image.length; i++) {
             image[i] = Bitmap.createBitmap(this.image, i * width, 0, width, height);
         }
 
         animation.setFrames(image);
-        animation.setDelay(100);
+        animation.setDelay(10);
         startTime = System.nanoTime();
     }
 
@@ -64,9 +65,9 @@ public class Player extends GameObject {
 
     public void collide(ArrayList<GameObject> object) {
         for (GameObject obj : object) {
-            if (obj != this && !(obj instanceof Monet) && !(obj instanceof Missile)) {
+            if (obj != this && !(obj instanceof Monet)) {
                 if (collision(this, obj)) {
-                    if (obj instanceof Kaktus) {
+                    if (obj instanceof Kaktus || obj instanceof Missile) {
                         playing = false;
                         showText = true;
                     }

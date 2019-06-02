@@ -16,7 +16,7 @@ public class Platform extends GameObject {
         x = 0;
         xVel = 0;
         y = GamePanel.HEIGHT - height;
-        speed = 18 + score / 100;
+        speed = GamePanel.WIDTH / 70 + score / 100;
         dx = -speed;
     }
 

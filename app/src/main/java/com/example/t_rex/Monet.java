@@ -13,7 +13,7 @@ public class Monet extends GameObject {
         height = res.getHeight();
         this.x = x;
         y = (GamePanel.HEIGHT - height * 4);
-        speed = 18 + score / 100;
+        speed = GamePanel.WIDTH / 70 + score / 100;
         spritesheet = res;
     }
 
