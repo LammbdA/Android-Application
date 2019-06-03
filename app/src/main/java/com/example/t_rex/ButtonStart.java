@@ -25,14 +25,5 @@ public class ButtonStart extends GameButtons {
     @Override
     public Rect getRectangle() {
         return new Rect(x, y, x + width, y + height);
-
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
     }
 }

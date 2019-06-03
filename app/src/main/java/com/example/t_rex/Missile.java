@@ -15,7 +15,7 @@ public class Missile extends GameObject {
         width = this.image.getWidth() / 2;
         height = this.image.getHeight();
 
-        speed = GamePanel.WIDTH / 128 + score / 100;
+        speed = GamePanel.WIDTH / 40 + score / 100;
 
         Bitmap[] img = new Bitmap[2];
         for (int i = 0; i < img.length; i++) {

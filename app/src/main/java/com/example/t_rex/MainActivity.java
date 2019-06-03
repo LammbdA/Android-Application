@@ -14,4 +14,21 @@ public class MainActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(new GamePanel(this));
     }
+
+    @Override
+    protected void onRestart() {
+        GamePanel.onPause = false;
+        super.onRestart();
+    }
+
+    public void onPause() {
+        GamePanel.onPause = true;
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        android.os.Process.killProcess(android.os.Process.myPid());
+        super.onDestroy();
+    }
 }
