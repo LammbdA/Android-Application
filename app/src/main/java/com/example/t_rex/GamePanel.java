@@ -21,22 +21,32 @@ import java.util.Iterator;
 import java.util.Random;
 
 public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
+    // Display
     public static int WIDTH;
     public static int HEIGHT;
+
+    // Position for bird spawn
     private final int FIRST_POSITION;
     private final int SECOND_POSITION;
+
     public static boolean onPause = false;
-//    private final int THIRD_POSITION;
     private long missileStartTime;
     private long kaktusStartTime;
 
     private MainThread thread;
+    // Game objects
     private Player player;
     private Background bg;
     private Background dark;
     private Platform platform;
+
+    // Game buttons
     private ButtonStart buttonStart;
     private ButtonSound buttonSound;
+    private ButtonSkins buttonSkins;
+    private ButtonBack buttonBack;
+    private boolean btnWasClicked = false;
+    private boolean inSkinsMenu = false;
 
     private ArrayList<GameObject> gameObjects;
     private Random rand = new Random();
@@ -50,14 +60,16 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     private boolean newGameCreated;
     private boolean btnPressed = false;
     private boolean wasCreated = false;
-    private MediaPlayer soundJump, soundStuck, soundMap;
+    private MediaPlayer soundMap;
 
+    // Database
     private Database database;
     private SQLiteDatabase db;
     private ContentValues contentValues;
 
     private boolean drawGame;
     private boolean drawMenu;
+    private boolean drawSkins;
 
     private boolean darkMode;
     private int darkModeTimer;
@@ -71,11 +83,8 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
         FIRST_POSITION = HEIGHT - HEIGHT / 5;
         SECOND_POSITION = HEIGHT / 2;
-//        THIRD_POSITION = HEIGHT - 600;
 
-        soundJump = MediaPlayer.create(context, R.raw.jump);
-        soundStuck = MediaPlayer.create(context, R.raw.stuck);
-        soundMap = MediaPlayer.create(context, R.raw.bbt);
+        soundMap = MediaPlayer.create(context, R.raw.game);
 
         database = new Database(context);
 
@@ -85,19 +94,22 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        if(!wasCreated) {
+        if (!wasCreated) {
             wasCreated = true;
             player = new Player(BitmapFactory.decodeResource(getResources(), R.drawable.rex));
             bg = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), player.getScore());
             dark = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.backgroundark), player.getScore());
             platform = new Platform(BitmapFactory.decodeResource(getResources(), R.drawable.platform), player.getScore());
             buttonStart = new ButtonStart(BitmapFactory.decodeResource(getResources(), R.drawable.play));
+            buttonSkins = new ButtonSkins(BitmapFactory.decodeResource(getResources(), R.drawable.skins));
+            buttonBack = new ButtonBack(BitmapFactory.decodeResource(getResources(), R.drawable.back));
             gameObjects = new ArrayList<>();
             gameObjects.add(player);
             gameObjects.add(platform);
 
             drawMenu = true;
             drawGame = false;
+            drawSkins = false;
 
             darkMode = false;
             darkModeTimer = 0;
@@ -151,26 +163,45 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(!onPause) {
+        if (!onPause) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 int x = (int) event.getX();
                 int y = (int) event.getY();
-                if (collisionWithButtons(buttonStart, x, y)) {
+                if (collisionWithButtons(buttonStart, x, y) && !btnWasClicked) {
                     drawMenu = false;
                     drawGame = true;
+                    drawSkins = false;
+                    btnWasClicked = true;
 
                     if (!player.isPlaying() && newGameCreated && reset)
                         player.setPlaying(true);
-                }
-                if (collisionWithButtons(buttonSound, x, y)) {
-                    if (!btnPressed) {
-                        btnPressed = true;
-                        soundMap.pause();
-                        buttonSound.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.soundoff));
+                }else {
+                    if (collisionWithButtons(buttonSkins, x, y) && !btnWasClicked) {
+                        drawMenu = false;
+                        drawGame = false;
+                        drawSkins = true;
+                        btnWasClicked = true;
+                        inSkinsMenu = true;
                     } else {
-                        btnPressed = false;
-                        soundMap.start();
-                        buttonSound.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.soundon));
+                        if (collisionWithButtons(buttonBack, x, y) && inSkinsMenu) {
+                            drawMenu = true;
+                            drawGame = false;
+                            drawSkins = false;
+                            btnWasClicked = false;
+                            inSkinsMenu = false;
+                        } else {
+                            if (collisionWithButtons(buttonSound, x, y) && !btnWasClicked) {
+                                if (!btnPressed) {
+                                    btnPressed = true;
+                                    soundMap.pause();
+                                    buttonSound.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.soundoff));
+                                } else {
+                                    btnPressed = false;
+                                    soundMap.start();
+                                    buttonSound.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.soundon));
+                                }
+                            }
+                        }
                     }
                 }
                 if (player.isPlaying()) {
@@ -190,7 +221,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void update() {
-        if(!onPause) {
+        if (!onPause) {
             if (player.isPlaying()) {
                 if (player.getScore() - darkModeTimer >= 1000) {
                     darkMode = !darkMode;
@@ -268,21 +299,24 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                 if (resetElapsed > 2500 && !newGameCreated) {
                     drawGame = false;
                     drawMenu = true;
+                    btnWasClicked = false;
                     newGame();
                 }
             }
-        }else
+        } else
             soundMap.pause();
     }
 
     @Override
     public void draw(Canvas canvas) {
-        if (canvas != null && !onPause) {
+        if (!onPause) {
             super.draw(canvas);
             if (drawMenu)
                 drawMenu(canvas);
             if (drawGame)
                 drawGame(canvas);
+            if(drawSkins)
+                drawSkinsChoose(canvas);
         }
     }
 
@@ -315,6 +349,15 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         platform.draw(canvas);
         buttonStart.draw(canvas);
         buttonSound.draw(canvas);
+        buttonSkins.draw(canvas);
+    }
+
+    public void drawSkinsChoose(Canvas canvas) {
+        if (!darkMode)
+            bg.draw(canvas);
+        else
+            dark.draw(canvas);
+        buttonBack.draw(canvas);
     }
 
     public void newGame() {
@@ -351,17 +394,17 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
             paint.setColor(Color.WHITE);
         paint.setTextSize(WIDTH / 40);
         paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        canvas.drawText("DISTANCE: " + (player.getScore()), 30, 100, paint);
+        canvas.drawText("DISTANCE: " + (player.getScore()), WIDTH / 20, HEIGHT / 10, paint);
 
         Cursor cursor = db.query(Database.TABLE_GAME, null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             int score = cursor.getColumnIndex(Database.KEY_SCORE);
             int money = cursor.getColumnIndex(Database.KEY_MONEY);
-            canvas.drawText("BEST: " + cursor.getInt(score), WIDTH - 300, 100, paint);
-            canvas.drawText("MONEY: " + cursor.getInt(money), WIDTH / 2 - 100, 100, paint);
+            canvas.drawText("BEST: " + cursor.getInt(score), WIDTH - WIDTH / 6, HEIGHT / 10, paint);
+            canvas.drawText("MONEY: " + cursor.getInt(money), WIDTH / 2 - WIDTH / 20, HEIGHT / 10, paint);
         } else {
-            canvas.drawText("BEST: " + 0, WIDTH - 300, 100, paint);
-            canvas.drawText("MONEY: " + 0, WIDTH / 2 - 100, 100, paint);
+            canvas.drawText("BEST: " + 0, WIDTH - WIDTH / 6, HEIGHT / 10, paint);
+            canvas.drawText("MONEY: " + 0, WIDTH / 2 - WIDTH / 20, HEIGHT / 10, paint);
         }
         cursor.close();
     }

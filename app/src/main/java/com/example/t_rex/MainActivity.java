@@ -21,9 +21,10 @@ public class MainActivity extends Activity {
         super.onRestart();
     }
 
-    public void onPause() {
+    @Override
+    protected void onPause() {
         GamePanel.onPause = true;
-        super.onStop();
+        super.onPause();
     }
 
     @Override
