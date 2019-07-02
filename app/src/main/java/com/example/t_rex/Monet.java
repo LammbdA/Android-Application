@@ -2,6 +2,7 @@ package com.example.t_rex;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 
 public class Monet extends GameObject {
 
@@ -28,5 +29,9 @@ public class Monet extends GameObject {
     @Override
     public int getWidth() {
         return width - 10;
+    }
+
+    public Rect getRectangle() {
+        return new Rect(x + 15, y + 15, x + width - 15, y + height - 15);
     }
 }

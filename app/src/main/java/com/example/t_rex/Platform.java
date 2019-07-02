@@ -2,6 +2,7 @@ package com.example.t_rex;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 
 public class Platform extends GameObject {
 
@@ -33,5 +34,4 @@ public class Platform extends GameObject {
             canvas.drawBitmap(image, xVel + GamePanel.WIDTH, y, null);
         }
     }
-
 }

@@ -2,6 +2,7 @@ package com.example.t_rex;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 
 public class Kaktus extends GameObject {
     private int speed;
@@ -32,5 +33,9 @@ public class Kaktus extends GameObject {
     @Override
     public int getWidth() {
         return width - 10;
+    }
+
+    public Rect getRectangle() {
+        return new Rect(x + 40, y + 30, x + width - 40, y + height - 30);
     }
 }

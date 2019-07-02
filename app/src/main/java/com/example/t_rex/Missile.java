@@ -2,6 +2,7 @@ package com.example.t_rex;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 
 public class Missile extends GameObject {
     private int speed;
@@ -38,6 +39,10 @@ public class Missile extends GameObject {
     @Override
     public int getWidth() {
         return width - 10;
+    }
+
+    public Rect getRectangle() {
+        return new Rect(x + 20, y + 10, x + width - 20, y + height - 10);
     }
 
 }
