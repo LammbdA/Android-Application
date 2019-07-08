@@ -42,7 +42,7 @@ public class Missile extends GameObject {
     }
 
     public Rect getRectangle() {
-        return new Rect(x + 20, y + 10, x + width - 20, y + height - 10);
+        return new Rect(x + GamePanel.WIDTH / 40, y + GamePanel.WIDTH / 40, x + width - GamePanel.WIDTH / 40, y + height - GamePanel.WIDTH / 40);
     }
 
 }

@@ -36,6 +36,6 @@ public class Kaktus extends GameObject {
     }
 
     public Rect getRectangle() {
-        return new Rect(x + 40, y + 30, x + width - 40, y + height - 30);
+        return new Rect(x + GamePanel.WIDTH / 40, y + GamePanel.WIDTH / 40, x + width - GamePanel.WIDTH / 40, y + height - GamePanel.WIDTH / 40);
     }
 }

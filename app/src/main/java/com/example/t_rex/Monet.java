@@ -32,6 +32,6 @@ public class Monet extends GameObject {
     }
 
     public Rect getRectangle() {
-        return new Rect(x + 15, y + 15, x + width - 15, y + height - 15);
+        return new Rect(x + GamePanel.WIDTH / 40, y + GamePanel.WIDTH / 40, x + width - GamePanel.WIDTH / 40, y + height - GamePanel.WIDTH / 40);
     }
 }

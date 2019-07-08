@@ -32,6 +32,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     public static boolean onPause = false;
     private long missileStartTime;
     private long kaktusStartTime;
+    private boolean kaktusCanAppear;
 
     private MainThread thread;
     // Game objects
@@ -122,6 +123,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
         missileStartTime = System.currentTimeMillis() / 1000;
         kaktusStartTime = System.currentTimeMillis() / 1000;
+        kaktusCanAppear = true;
 
         db = database.getWritableDatabase();
         contentValues = new ContentValues();
@@ -175,7 +177,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
                     if (!player.isPlaying() && newGameCreated && reset)
                         player.setPlaying(true);
-                }else {
+                } else {
                     if (collisionWithButtons(buttonSkins, x, y) && !btnWasClicked) {
                         drawMenu = false;
                         drawGame = false;
@@ -234,61 +236,14 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                 else
                     dark.update();
 
-                long missileElapsed = System.currentTimeMillis() / 1000;
                 long kaktusElapsed = System.currentTimeMillis() / 1000;
-                int randomSecond = rand.nextInt(8) + 3;
+                int randomSecond = rand.nextInt(4) + 2;
+                spawnKaktus(randomSecond, kaktusElapsed);
 
-                if (kaktusElapsed - kaktusStartTime >= randomSecond) {
-                    gameObjects.add(new Kaktus(BitmapFactory.decodeResource(getResources(), R.drawable.kaktus),
-                            WIDTH + 10, player.getScore()));
-                    gameObjects.add(new Monet(BitmapFactory.decodeResource(getResources(), R.drawable.monet),
-                            WIDTH + 10, player.getScore()));
-                    kaktusStartTime = System.currentTimeMillis() / 1000;
-                }
-                for (GameObject object : gameObjects) {
-                    if (object instanceof Kaktus) {
-                        ((Kaktus) object).update();
-                        if (object.getX() < -100) {
-                            gameObjects.remove(object);
-                            break;
-                        }
-                    }
-                    if (object instanceof Monet) {
-                        ((Monet) object).update();
-                        if (object.getX() < -100 || player.collision(player, object)) {
-                            money++;
-                            contentValues.put(Database.KEY_MONEY, money);
-                            db.update(Database.TABLE_GAME, contentValues, Database.KEY_ID + "= ?", new String[]{"1"});
-                            gameObjects.remove(object);
-                            break;
-                        }
-                    }
-                }
-                randomSecond = rand.nextInt(30) + 15;
-                int randomPosition = rand.nextInt(2) + 1;
-                if (missileElapsed - missileStartTime >= randomSecond) {
-                    switch (randomPosition) {
-                        case 1:
-                            gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
-                                    WIDTH + 10, FIRST_POSITION, player.getScore()));
-                            missileStartTime = System.currentTimeMillis() / 1000;
-                            break;
-                        case 2:
-                            gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
-                                    WIDTH + 10, SECOND_POSITION, player.getScore()));
-                            missileStartTime = System.currentTimeMillis() / 1000;
-                            break;
-                    }
-                }
-                for (GameObject object : gameObjects) {
-                    if (object instanceof Missile) {
-                        ((Missile) object).update();
-                        if (object.getX() < -100) {
-                            gameObjects.remove(object);
-                            break;
-                        }
-                    }
-                }
+                long missileElapsed = System.currentTimeMillis() / 1000;
+                randomSecond = rand.nextInt(15) + 7;
+                spawnMissile(randomSecond, missileElapsed);
+
             } else {
                 if (!reset) {
                     newGameCreated = false;
@@ -315,7 +270,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                 drawMenu(canvas);
             if (drawGame)
                 drawGame(canvas);
-            if(drawSkins)
+            if (drawSkins)
                 drawSkinsChoose(canvas);
         }
     }
@@ -364,6 +319,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         player.setShowText(false);
         darkModeTimer = 0;
         darkMode = false;
+        deleteObjects();
         player.setY((int) (HEIGHT - player.height * 1.3));
         for (Iterator<GameObject> it = gameObjects.iterator(); it.hasNext(); ) {
             GameObject aDrugStrength = it.next();
@@ -423,5 +379,76 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     public boolean collisionWithButtons(GameButtons obj, int x, int y) {
         return x > obj.getRectangle().left && x < obj.getRectangle().right && y < obj.getRectangle().bottom && y > obj.getRectangle().top;
+    }
+
+    private void spawnKaktus(int randomSecond, long kaktusElapsed) {
+        if (kaktusElapsed - kaktusStartTime >= randomSecond && kaktusCanAppear) {
+            gameObjects.add(new Kaktus(BitmapFactory.decodeResource(getResources(), R.drawable.kaktus),
+                    WIDTH + 10, player.getScore()));
+            gameObjects.add(new Monet(BitmapFactory.decodeResource(getResources(), R.drawable.monet),
+                    WIDTH + 10, player.getScore()));
+            kaktusStartTime = System.currentTimeMillis() / 1000;
+        }
+        for (GameObject object : gameObjects) {
+            if (object instanceof Kaktus) {
+                ((Kaktus) object).update();
+                if (object.getX() < -100) {
+                    gameObjects.remove(object);
+                    break;
+                }
+            }
+            if (object instanceof Monet) {
+                ((Monet) object).update();
+                if (object.getX() < -100 || player.collision(player, object)) {
+                    money++;
+                    contentValues.put(Database.KEY_MONEY, money);
+                    db.update(Database.TABLE_GAME, contentValues, Database.KEY_ID + "= ?", new String[]{"1"});
+                    gameObjects.remove(object);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void spawnMissile(int randomSecond, long missileElapsed) {
+        int randomPosition = rand.nextInt(2) + 1;
+
+        if (missileElapsed - missileStartTime >= randomSecond) {
+            kaktusCanAppear = false;
+            switch (randomPosition) {
+                case 1:
+                    gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
+                            2 * WIDTH, FIRST_POSITION, player.getScore()));
+                    missileStartTime = System.currentTimeMillis() / 1000;
+                    break;
+                case 2:
+                    gameObjects.add(new Missile(BitmapFactory.decodeResource(getResources(), R.drawable.bird),
+                            2 * WIDTH, SECOND_POSITION, player.getScore()));
+                    missileStartTime = System.currentTimeMillis() / 1000;
+                    break;
+            }
+        }
+        for (GameObject object : gameObjects) {
+            if (object instanceof Missile) {
+                ((Missile) object).update();
+                if (object.getX() <= WIDTH / 2)
+                    kaktusCanAppear = true;
+                if (object.getX() < -10) {
+                    gameObjects.remove(object);
+                    kaktusCanAppear = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void deleteObjects() {
+        for (GameObject object : gameObjects) {
+            if (object instanceof Missile || object instanceof Kaktus || object instanceof Monet)
+                gameObjects.remove(object);
+        }
+        missileStartTime = System.currentTimeMillis() / 1000;
+        kaktusStartTime = System.currentTimeMillis() / 1000;
+        kaktusCanAppear = true;
     }
 }
